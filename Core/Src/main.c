@@ -115,11 +115,13 @@ int main(void)
   {
 	  ret = HAL_I2C_Master_Receive(&hi2c1, ads1115_address_r, adc_value, 2, 50);
 	  converted = ((adc_value[0] << 8) | adc_value[1]);
-	  voltage = ((float)converted * 256.0)/32768.0;
+//	  voltage = ((float)converted * 256.0)/32768.0;
 //	  snprintf(buffer, sizeof(buffer), "%f\n", voltage);
 //	  CDC_Transmit_FS(buffer, sizeof(buffer));
-	  snprintf(buffer, sizeof(buffer)-1, "Pomiar: %lf\n", voltage);
-	  CDC_Transmit_FS((uint16_t*)buffer, sizeof(buffer));
+//	  snprintf(buffer, sizeof(buffer)-1, "Pomiar: %lf\n", voltage);
+//	  CDC_Transmit_FS((uint16_t*)buffer, sizeof(buffer));
+	  snprintf(buffer, sizeof(buffer)-1, "%d\n", converted);
+	  CDC_Transmit_FS(buffer, sizeof(buffer));
 	  HAL_Delay(10);
     /* USER CODE END WHILE */
 
