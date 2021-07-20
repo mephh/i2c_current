@@ -50,18 +50,18 @@
 
 /* USER CODE BEGIN PV */
 //**************************ADS1115 variables ///
-const uint8_t ads1115_address_w = 0b01001000 << 1;
-const uint8_t ads1115_address_r = 0b01001000 << 1 | 0x01;
+const uint8_t ads1115_address_w = 0b01001000 << 1; //address at which we write data
+const uint8_t ads1115_address_r = 0b01001000 << 1 | 0x01; //address at which we read data
 const uint8_t ads1115_reg_config = 0b00000001;
 uint8_t ads1115_config_data[] = { 0b10001110, 0b11100011 };
 const uint8_t ads1115_reg_conversion = 0b00000000;
 
-uint8_t adc_value[2];
-int16_t converted;
-char buffer[25];
-char duration[5];
-long dur_number;
-char *ptr;
+uint8_t adc_value[2];	//raw data from ads1115, must be combined
+int16_t converted;		//converted value fropm ads1115
+char buffer[25];		//serial commands buffer
+char duration[5];		//buffer for ads1115 measurement time, string typed
+long dur_number;		//converted above to number, base 10
+char *ptr;				//ph for string convertion
 //**************************ADS1115 variables ///
 
 uint8_t DataToSend[40]; // Tablica zawierajaca dane do wyslania
@@ -70,17 +70,20 @@ uint8_t MessageLength = 0; // Zawiera dlugosc wysylanej wiadomosci
 
 uint8_t ReceivedData[40]; // Tablica przechowujaca odebrane dane
 uint8_t ReceivedDataFlag = 0; // Flaga informujaca o odebraniu danych
+//all available serial commands that will be interpreted
 const char resetAll[] = "RESET";
 const char startADC[] = "ADC";
 const char a0on[] = "A0 ON";
 const char a1on[] = "A1 ON";
 const char a2on[] = "A2 ON";
 const char a3on[] = "A3 ON";
-const char a0off[] = "A0 OFF";
-const char a1off[] = "A1 OFF";
-const char a2off[] = "A2 OFF";
-const char a3off[] = "A3 OFF";
+const char a0off[] = "A0 OF";
+const char a1off[] = "A1 OF";
+const char a2off[] = "A2 OF";
+const char a3off[] = "A3 OF";
 const char b5[] = "B5?";
+const char relay_out_on[] = "RL_OUT ON";
+const char relay_out_off[] = "RL_OUT OF";
 
 /* USER CODE END PV */
 
@@ -125,11 +128,12 @@ int main(void) {
 	MX_I2C1_Init();
 	MX_USB_DEVICE_Init();
 	/* USER CODE BEGIN 2 */
+	//ads1115 configuration
 	HAL_I2C_Mem_Write(&hi2c1, ads1115_address_w, ads1115_reg_config, 1,
 			ads1115_config_data, 2, 50);
 	HAL_I2C_Master_Transmit(&hi2c1, ads1115_address_w, ads1115_reg_conversion,
 			1, 50);
-
+	//gpio init configuration, probably obsolete
 	HAL_GPIO_WritePin(PB4_ALWAYS_HIGH_GPIO_Port, PB4_ALWAYS_HIGH_Pin,
 			GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
@@ -140,9 +144,9 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (ReceivedDataFlag == 1) {
+		if (ReceivedDataFlag == 1) {	//flag for serial input buffer
 			ReceivedDataFlag = 0;
-			// odczyt ADS1115//
+			// read ADS1115//
 			if (strncmp((const char*) ReceivedData, startADC, 3) == 0) {
 				for (int var = 0; var < 5; ++var) {
 					duration[var] = ReceivedData[3 + var];
@@ -157,7 +161,7 @@ int main(void) {
 					CDC_Transmit_FS(buffer, sizeof(buffer));
 				}
 			}
-			// sterowanie przekaznikami
+			// relay commands
 			if (strncmp((const char*) ReceivedData, resetAll, 5) == 0) {
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
@@ -207,8 +211,25 @@ int main(void) {
 				MessageLength = sprintf(DataToSend, "Wylaczono A3\n");
 				CDC_Transmit_FS(DataToSend, MessageLength);
 			}
-
-			// odczyt stanu pinu
+			// RF relay
+			if (strncmp((const char*) ReceivedData, relay_out_on, 9) == 0) {
+				HAL_GPIO_WritePin(RLY_OUTPUT1_GPIO_Port, RLY_OUTPUT1_Pin,
+						GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(RLY_OUTPUT2_GPIO_Port, RLY_OUTPUT2_Pin,
+						GPIO_PIN_SET);
+				MessageLength = sprintf(DataToSend, "Przekaznik RF wlaczony\n");
+				CDC_Transmit_FS(DataToSend, MessageLength);
+			}
+			if (strncmp((const char*) ReceivedData, relay_out_off, 9) == 0) {
+				HAL_GPIO_WritePin(RLY_OUTPUT1_GPIO_Port, RLY_OUTPUT1_Pin,
+						GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RLY_OUTPUT2_GPIO_Port, RLY_OUTPUT2_Pin,
+						GPIO_PIN_RESET);
+				MessageLength = sprintf(DataToSend,
+						"Przekaznik RF wylaczony\n");
+				CDC_Transmit_FS(DataToSend, MessageLength);
+			}
+			// read GPIO state
 			if (strncmp((const char*) ReceivedData, b5, 3) == 0) {
 				if (HAL_GPIO_ReadPin(PB5_GPIO_Port, PB5_Pin) == GPIO_PIN_SET) {
 					MessageLength = sprintf(DataToSend, "1\n");
@@ -218,12 +239,16 @@ int main(void) {
 					CDC_Transmit_FS(DataToSend, MessageLength);
 				}
 			}
-
-			/* USER CODE END WHILE */
-
-			/* USER CODE BEGIN 3 */
 		}
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+		HAL_Delay(150);
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+		HAL_Delay(150);
 	}
+	/* USER CODE END WHILE */
+
+	/* USER CODE BEGIN 3 */
+
 	/* USER CODE END 3 */
 }
 

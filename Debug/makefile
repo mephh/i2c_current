@@ -32,34 +32,34 @@ endif
 
 -include ../makefile.defs
 
-BUILD_ARTIFACT_NAME := i2c_training
+BUILD_ARTIFACT_NAME := CURRENT_DIO_RELAY_I2C
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX := 
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME).$(BUILD_ARTIFACT_EXTENSION)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-i2c_training.elf \
+CURRENT_DIO_RELAY_I2C.elf \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-i2c_training.list \
+CURRENT_DIO_RELAY_I2C.list \
 
 OBJCOPY_BIN += \
-i2c_training.bin \
+CURRENT_DIO_RELAY_I2C.bin \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: i2c_training.elf secondary-outputs
+main-build: CURRENT_DIO_RELAY_I2C.elf secondary-outputs
 
 # Tool invocations
-i2c_training.elf: $(OBJS) $(USER_OBJS) C:\Users\abastrzyk\STM32CubeIDE\workspace_1.5.1\i2c_training\STM32F401CCUX_FLASH.ld
-	arm-none-eabi-gcc -o "i2c_training.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\abastrzyk\STM32CubeIDE\workspace_1.5.1\i2c_training\STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="i2c_training.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+CURRENT_DIO_RELAY_I2C.elf: $(OBJS) $(USER_OBJS) C:\Users\abastrzyk\STM32CubeIDE\workspace_1.5.1\i2c_training\STM32F401CCUX_FLASH.ld
+	arm-none-eabi-gcc -o "CURRENT_DIO_RELAY_I2C.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\abastrzyk\STM32CubeIDE\workspace_1.5.1\i2c_training\STM32F401CCUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CURRENT_DIO_RELAY_I2C.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -68,13 +68,13 @@ default.size.stdout: $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-i2c_training.list: $(EXECUTABLES)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "i2c_training.list"
+CURRENT_DIO_RELAY_I2C.list: $(EXECUTABLES)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "CURRENT_DIO_RELAY_I2C.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-i2c_training.bin: $(EXECUTABLES)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "i2c_training.bin"
+CURRENT_DIO_RELAY_I2C.bin: $(EXECUTABLES)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "CURRENT_DIO_RELAY_I2C.bin"
 	@echo 'Finished building: $@'
 	@echo ' '
 
