@@ -82,8 +82,8 @@ const char a1off[] = "A1 OF";
 const char a2off[] = "A2 OF";
 const char a3off[] = "A3 OF";
 const char b5[] = "B5?";
-const char relay_out_on[] = "RL_OUT ON";
-const char relay_out_off[] = "RL_OUT OF";
+const char relay_out_on[] = "RF ON";
+const char relay_out_off[] = "RF OF";
 
 /* USER CODE END PV */
 
@@ -212,7 +212,7 @@ int main(void) {
 				CDC_Transmit_FS(DataToSend, MessageLength);
 			}
 			// RF relay
-			if (strncmp((const char*) ReceivedData, relay_out_on, 9) == 0) {
+			if (strncmp((const char*) ReceivedData, relay_out_on, 5) == 0) {
 				HAL_GPIO_WritePin(RLY_OUTPUT1_GPIO_Port, RLY_OUTPUT1_Pin,
 						GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(RLY_OUTPUT2_GPIO_Port, RLY_OUTPUT2_Pin,
@@ -220,7 +220,7 @@ int main(void) {
 				MessageLength = sprintf(DataToSend, "Przekaznik RF wlaczony\n");
 				CDC_Transmit_FS(DataToSend, MessageLength);
 			}
-			if (strncmp((const char*) ReceivedData, relay_out_off, 9) == 0) {
+			if (strncmp((const char*) ReceivedData, relay_out_off, 5) == 0) {
 				HAL_GPIO_WritePin(RLY_OUTPUT1_GPIO_Port, RLY_OUTPUT1_Pin,
 						GPIO_PIN_SET);
 				HAL_GPIO_WritePin(RLY_OUTPUT2_GPIO_Port, RLY_OUTPUT2_Pin,
